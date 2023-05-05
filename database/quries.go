@@ -13,4 +13,7 @@ DELETE FROM video_games.region_sales WHERE game_platform_id IN
 						                                              (SELECT id FROM video_games.platform WHERE platform_name =?);
 			`
 	DeletePlatformQuery3 = `DELETE FROM video_games.platform WHERE platform_name = ?;`
+
+	AddGameQuery = `INSERT INTO video_games.game (genre_id, game_name) 
+							VALUES ((SELECT id from video_games.genre where genre_name = ?), ?)`
 )

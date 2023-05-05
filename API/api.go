@@ -33,6 +33,7 @@ func (a *API) Start() error {
 	a.db = db
 
 	a.router.HandleFunc("/platform", a.handleAddPlatform())
+	a.router.HandleFunc("/game", a.handleAddGame())
 
 	return http.ListenAndServe(port, a.router)
 }
@@ -89,6 +90,36 @@ func (a *API) handleAddPlatform() http.HandlerFunc {
 				return
 			}
 			ins.Exec(msg.PlatformName)
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}
+}
+
+func (a *API) handleAddGame() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		body, err := io.ReadAll(request.Body)
+		if err != nil {
+			http.Error(writer, "can't read body", http.StatusBadRequest)
+			return
+		}
+		err = request.Body.Close()
+		if err != nil {
+			http.Error(writer, "can't close body", http.StatusInternalServerError)
+			return
+		}
+
+		var msg AddGame
+		err = json.Unmarshal(body, &msg)
+		if err != nil {
+			http.Error(writer, "error during unmarshal", http.StatusBadRequest)
+			return
+		}
+
+		_, err = a.db.Exec(database.AddGameQuery, msg.GenreName, msg.GameName)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		writer.WriteHeader(http.StatusOK)
